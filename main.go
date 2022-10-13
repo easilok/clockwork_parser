@@ -136,7 +136,7 @@ func main() {
 		wg,
 		groupedWorklogs,
 		fmt.Sprintf(
-			"%s_test_issue.csv",
+			"%s_issue_report.csv",
 			fileTimestamp,
 		),
 		false,
@@ -146,7 +146,7 @@ func main() {
 		wg,
 		epicWorklogs,
 		fmt.Sprintf(
-			"%s_test_epic.csv",
+			"%s_epic_report.csv",
 			fileTimestamp,
 		),
 		true,
