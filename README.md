@@ -22,9 +22,20 @@ The configuration for the program to run is made through environment variables t
   the format **YYYY-MM_DD**. If not provided, it will be set to the last day of the current month.
 - **CLOCKWORK_API_PROJECT**, which is optional, and represent the project key to be filtered.
 - **CLOCKWORK_API_AUTHOR**, which is optional, and represent the user email to that filters the worklog author.
+- **CLOCKWORK_PARSER_OUTPUT_DIR**, which represents the folder to where the CSV reports will be saved. The folder is
+  created if it does not exist on the application run. If this environment variable is not set, the application will use
+  the current working directory as the output directory.
 - **CLOCKWORK_PARSER_DEBUG**, which is optional, and can be anything. This enables a more verbose logging of what the
   application is processing.
 
+To run the application with the desired configuration, the user should run it with the specific variables set, or with
+a file as argument with the definition of the desired configuration. This file should be provided with the `-e` flag,
+for example:
+
+```
+clockwork_parser -e $HOME/.config/clockwork.config
+```
+  
 # Rules for the output reports
 
 This application end task is to generate two reports files, on the CSV format, one for a issue grouping, another
@@ -60,3 +71,4 @@ The fields of this report are:
 - **HoursSpent**, the hours spent working on the epic.
 
 **Note:** the *YYYYMM* part of the file name will match the year and month of the starting date of generated report.
+
