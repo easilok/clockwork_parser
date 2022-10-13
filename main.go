@@ -30,10 +30,22 @@ func main() {
 
 	defaultStartDate, defaultEndDate := getCurrentMonthLimits()
 
-	err := godotenv.Load()
+	if _, err := os.Stat(".env"); err == nil {
+		// Accept a .env file on the current working directory to provide environment variables
+		err := godotenv.Load()
 
-	if err != nil {
-		log.Fatal(err)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	if len(os.Args) > 1 && os.Args[1] == "-e" {
+		// Accept an -e flag to provide an environment file
+		err := godotenv.Load(os.Args[2])
+
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	apiToken, ok := os.LookupEnv("CLOCKWORK_API_TOKEN")
@@ -132,7 +144,7 @@ func main() {
 	// Create a gorouting waiting group with two waits
 	wg := new(sync.WaitGroup)
 	wg.Add(2)
-	go parsers.GenerateWorklogCSV(
+	parsers.GenerateWorklogCSV(
 		wg,
 		groupedWorklogs,
 		fmt.Sprintf(
@@ -142,7 +154,7 @@ func main() {
 		false,
 	)
 
-	go parsers.GenerateWorklogCSV(
+	parsers.GenerateWorklogCSV(
 		wg,
 		epicWorklogs,
 		fmt.Sprintf(
