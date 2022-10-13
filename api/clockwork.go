@@ -16,7 +16,7 @@ func GetWorklogs(token string, startDate string, endDate string, project string,
 	requestArgs := "?starting_at=%s&ending_at=%s&expand=issues,authors"
 
 	if len(project) > 0 {
-		requestArgs = "&project_keys[]=%s"
+		requestArgs = requestArgs + "&project_keys[]=%s"
 	} else {
 		// This allows for appending an empty string with Sprintf
 		requestArgs = requestArgs + "%s"
