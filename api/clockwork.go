@@ -13,7 +13,14 @@ const CLOCKWORK_API_WORKLOGS = "https://api.clockwork.report/v1/worklogs"
 
 func GetWorklogs(token string, startDate string, endDate string, project string, author string) ([]models.Worklog, error) {
 
-	requestArgs := "?starting_at=%s&ending_at=%s&expand=issues,authors&project_keys[]=%s"
+	requestArgs := "?starting_at=%s&ending_at=%s&expand=issues,authors"
+
+	if len(project) > 0 {
+		requestArgs = "&project_keys[]=%s"
+	} else {
+		// This allows for appending an empty string with Sprintf
+		requestArgs = requestArgs + "%s"
+	}
 
 	if len(author) > 0 {
 		requestArgs = requestArgs + "&user_query=%s"
