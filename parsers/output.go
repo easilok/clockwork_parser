@@ -11,9 +11,13 @@ import (
 func GenerateWorklogCSV(wg *sync.WaitGroup, worklogs []models.Worklog, filename string, epicSummary bool) error {
 	defer wg.Done()
 
-	_ = os.Mkdir("export", os.ModePerm)
+	outputDir, ok := os.LookupEnv("CLOCKWORK_PARSER_OUTPUT_DIR")
+	if !ok {
+		outputDir = "."
+	}
+	_ = os.MkdirAll(path.Join(outputDir, "export"), os.ModePerm)
 
-	f, err := os.Create(path.Join("export", filename))
+	f, err := os.Create(path.Join(outputDir, "export", filename))
 	if err != nil {
 		return err
 	}
