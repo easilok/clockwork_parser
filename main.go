@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"sync"
+	"time"
 
 	"github.com/easilok/clockwork_parser/api"
 	"github.com/easilok/clockwork_parser/parsers"
@@ -12,8 +14,21 @@ import (
 
 const CLOCKWORK_API_WORKLOGS = "https://api.clockwork.report/v1/worklogs"
 
+func getCurrentMonthLimits() (time.Time, time.Time) {
+	now := time.Now()
+	currentYear, currentMonth, _ := now.Date()
+	currentLocation := now.Location()
+
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
+
+	return firstOfMonth, lastOfMonth
+}
+
 func main() {
 	fmt.Println("Starting Program")
+
+	defaultStartDate, defaultEndDate := getCurrentMonthLimits()
 
 	err := godotenv.Load()
 
@@ -28,6 +43,7 @@ func main() {
 
 	project, ok := os.LookupEnv("CLOCKWORK_API_PROJECT")
 	if !ok {
+		// Using a default project for lima team
 		project = "LT"
 	}
 
@@ -35,16 +51,15 @@ func main() {
 
 	startDate, ok := os.LookupEnv("CLOCKWORK_API_START_DATE")
 	if !ok {
-		// TODO - make it today month start
-		startDate = "2022-10-01"
+		startDate = defaultStartDate.Format("2006-01-02")
 	}
 
-	endDate, ok := os.LookupEnv("CLOCKWORK_API_START_END")
+	endDate, ok := os.LookupEnv("CLOCKWORK_API_END_DATE")
 	if !ok {
-		// TODO - make it today month end
-		endDate = "2022-10-09"
+		endDate = defaultEndDate.Format("2006-01-02")
 	}
 
+	fmt.Printf("Fetching clockwork logs for %s, from %s to %s\n\n", author, startDate, endDate)
 	worklogs, err := api.GetWorklogs(apiToken, startDate, endDate, project, author)
 
 	if err != nil {
@@ -106,13 +121,35 @@ func main() {
 		)
 	}
 
-	err = parsers.GenerateWorklogCSV(groupedWorklogs, "test_issue.csv", false)
-	if err != nil {
-		log.Fatal(err)
+	fmt.Println("")
+	fmt.Println("Creating CSV files reports.")
+	fileTimestamp := defaultStartDate.Format("200601")
+	startDateTime, err := time.Parse("2006-01-02", startDate)
+	if err == nil {
+		fileTimestamp = startDateTime.Format("200601")
 	}
+	// Create a gorouting waiting group with two waits
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+	go parsers.GenerateWorklogCSV(
+		wg,
+		groupedWorklogs,
+		fmt.Sprintf(
+			"%s_test_issue.csv",
+			fileTimestamp,
+		),
+		false,
+	)
 
-	err = parsers.GenerateWorklogCSV(epicWorklogs, "test_epic.csv", true)
-	if err != nil {
-		log.Fatal(err)
-	}
+	go parsers.GenerateWorklogCSV(
+		wg,
+		epicWorklogs,
+		fmt.Sprintf(
+			"%s_test_epic.csv",
+			fileTimestamp,
+		),
+		true,
+	)
+
+	fmt.Println("CSV files created \"export\" folder.")
 }

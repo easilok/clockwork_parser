@@ -3,11 +3,13 @@ package parsers
 import (
 	"os"
 	"path"
+	"sync"
 
 	"github.com/easilok/clockwork_parser/models"
 )
 
-func GenerateWorklogCSV(worklogs []models.Worklog, filename string, epicSummary bool) error {
+func GenerateWorklogCSV(wg *sync.WaitGroup, worklogs []models.Worklog, filename string, epicSummary bool) error {
+	defer wg.Done()
 
 	_ = os.Mkdir("export", os.ModePerm)
 
